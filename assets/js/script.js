@@ -1,10 +1,11 @@
 // Retrieve tasks and nextId from localStorage
 let taskList = JSON.parse(localStorage.getItem("tasks"));
 let nextId = JSON.parse(localStorage.getItem("nextId"));
+let tasks = [];
 const title = $('#task-title');
 const date = $('#datepicker');
 const description = $('#task-description');
-let stored = [];
+
 
 // Todo: create a function to generate a unique task id
 function generateTaskId() {
@@ -13,35 +14,45 @@ function generateTaskId() {
 
 // Todo: create a function to create a task card
 function createTaskCard(task) {
-    const card = $('<div>').addClass('card zindex task-card draggable my-4').attri('data-task-id', task.id);
-    const cardHeader = $('<div>').addClass('card-header h4').text(task.title);
+    
+    const card = $('<div>').addClass('card zindex task-card draggable my-4').attr('data-task-id', tasks.id);
+    const cardHeader = $('<div>').addClass('card-header h4').text(tasks.title);
     const cardBody = $('<div>').addClass('card-body');
-    const cardDescript = $('<p>').addClass('card-text').text(task.description);
-    const cardDue = $('<p>').addClass('card-text').text(task.date);
-    const cardDelete = $('<button>').addClass('btn btn-danger delet').text('Delete').attr('data-task-id', task.id)
-    cardDelete.on('click', handleDeletTask);
+    const cardDescript = $('<p>').addClass('card-text').text(tasks.description);
+    const cardDue = $('<p>').addClass('card-text').text(tasks.date);
+    const cardDelete = $('<button>').addClass('btn btn-danger delet').text('Delete').attr('data-task-id', tasks.id)
+    cardDelete.on('click', handleDeleteTask);
+
+    cardBody.append(cardDescript, cardDue, cardDelete);
+    card.append(cardHeader, cardBody);
+    return card;
 
 }
 
 // Todo: create a function to render the task list and make cards draggable
 function renderTaskList() {
 
+
 }
 
 // Todo: create a function to handle adding a new task
 function handleAddTask(event) {
-    if (stored !== null) {
-        stored = taskList;
-    }
-    const newTask ={
+    if (taskList !== null) {
+        task = taskList;
+     }
+
+    let newtask ={
         id: crypto.randomUUID(),
-        name: title,
-        date: date,
-        description: description,
+        name: title.val().trim(),
+        date: date.val().trim(),
+        description: description.val().trim(),
     };
 
-    stored.push(newTask);
+    tasks.push(newtask);
+    localStorage.setItem('tasks', JSON.stringify(tasks));
 
+    console.log(task);
+    createTaskCard();
     renderTaskList();
 }
 
@@ -59,7 +70,7 @@ function handleDrop(event, ui) {
 $(document).ready(function () {
     $('#submit').on("click", function () {
         handleAddTask();
-        createTaskCard();
+        //createTaskCard();
     });
 
 });

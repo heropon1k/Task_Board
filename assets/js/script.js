@@ -14,7 +14,7 @@ function generateTaskId() {
 
 // Todo: create a function to create a task card
 function createTaskCard(tasks) {
-    
+
     console.log(tasks);
 
     const card = $('<div>').addClass('card zindex task-card draggable my-4').attr('data-task-id', tasks.id);
@@ -41,12 +41,20 @@ function renderTaskList() {
 
     const inProgressList = $('#in-progress-cards');
     inProgressList.empty();
-    
+
     const doneList = $('#done-cards');
     doneList.empty();
 
-    for (i = 0; i<tasks.length; i++){
-        todo.append(createTaskCard(tasks[i]))
+    for (i = 0; i < tasks.length; i++) {
+        if (tasks[i].status == 'to-do') {
+            todo.append(createTaskCard(tasks[i]));
+        }
+        else if (tasks[i].status == 'in-progress') {
+            inProgressList.append(createTaskCard(tasks[i]));
+        }
+        else {
+            doneList.append(createTaskCard(tasks[i]));
+        };
     }
 
     $('.draggable').draggable({
@@ -54,16 +62,16 @@ function renderTaskList() {
         zIndex: 100,
         // ? This is the function that creates the clone of the card that is dragged. This is purely visual and does not affect the data.
         helper: function (e) {
-          // ? Check if the target of the drag event is the card itself or a child element. If it is the card itself, clone it, otherwise find the parent card  that is draggable and clone that.
-          const original = $(e.target).hasClass('ui-draggable')
-            ? $(e.target)
-            : $(e.target).closest('.ui-draggable');
-          // ? Return the clone with the width set to the width of the original card. This is so the clone does not take up the entire width of the lane. This is to also fix a visual bug where the card shrinks as it's dragged to the right.
-          return original.clone().css({
-            width: original.outerWidth(),
-          });
+            // ? Check if the target of the drag event is the card itself or a child element. If it is the card itself, clone it, otherwise find the parent card  that is draggable and clone that.
+            const original = $(e.target).hasClass('ui-draggable')
+                ? $(e.target)
+                : $(e.target).closest('.ui-draggable');
+            // ? Return the clone with the width set to the width of the original card. This is so the clone does not take up the entire width of the lane. This is to also fix a visual bug where the card shrinks as it's dragged to the right.
+            return original.clone().css({
+                width: original.outerWidth(),
+            });
         },
-      });
+    });
 
 }
 
@@ -72,13 +80,14 @@ function handleAddTask(event) {
     let tasks = [];
     if (taskList !== null) {
         tasks = taskList;
-     }
+    }
 
-    let newtask ={
+    let newtask = {
         id: crypto.randomUUID(),
         name: title.val().trim(),
         date: date.val().trim(),
         description: description.val().trim(),
+        status: 'to-do',
     };
 
     tasks.push(newtask);
@@ -96,10 +105,10 @@ function handleDeleteTask(event) {
     const tasks = JSON.parse(localStorage.getItem("tasks"));
     console.log(tasks);
 
-    for (i=0; i < tasks.length; i++){
+    for (i = 0; i < tasks.length; i++) {
         //console.log(tasks[i].id)
         //console.log(taskId)
-        if (tasks[i].id === taskId){
+        if (tasks[i].id === taskId) {
             tasks.splice(i, 1);
         }
     }
@@ -112,18 +121,26 @@ function handleDeleteTask(event) {
 // Todo: create a function to handle dropping a task into a new status lane
 function handleDrop(event, ui) {
     const tasks = JSON.parse(localStorage.getItem("tasks"));
-    const taskId = ui.draggable[0].dataset.projectId;
+    const taskId = ui.draggable[0].dataset.taskId;
     const newStatus = event.target.id;
 
-    for(i=0; i<tasks.length; i++){
-        if(tasks.id === taskId){
-            taskId.status = newStatus;
-            renderTaskList();
+    //console.log(taskId);
+    //console.log(tasks[0].id);
+    //console.log(tasks[0].status);
+    //console.log(newStatus);
+
+    for (i = 0; i < tasks.length; i++) {
+        //console.log("runs")
+        if (tasks[i].id == taskId) {
+            //console.log("if passes")
+            tasks[i].status = newStatus;
+            console.log(tasks[i].id)
         }
     }
 
     localStorage.setItem('tasks', JSON.stringify(tasks))
-    
+    renderTaskList();
+
 }
 
 // Todo: when the page loads, render the task list, add event listeners, make lanes droppable, and make the due date field a date picker
@@ -138,6 +155,11 @@ $(document).ready(function () {
         //createTaskCard();
     });
 
+});
+
+$('.lane').droppable({
+    accept: '.draggable',
+    drop: handleDrop,
 });
 
 $('#datepicker').datepicker({
